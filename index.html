@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PKゲーム - チャーハンター</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('stadium-bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            font-family: 'Arial', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 95%;
+            width: 95%;
+            margin: 10px auto;
+        }
+        
+        @media (min-width: 768px) {
+            .game-container {
+                padding: 30px;
+                border-radius: 20px;
+                max-width: 800px;
+                width: 90%;
+            }
+        }
+
+        .title {
+            font-size: 1.5rem;
+            color: #2e8b57;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            line-height: 1.2;
+        }
+        
+        @media (min-width: 768px) {
+            .title {
+                font-size: 2.5rem;
+                margin-bottom: 20px;
+            }
+        }
+
+        .score {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            color: #333;
+            line-height: 1.4;
+        }
+        
+        @media (min-width: 768px) {
+            .score {
+                font-size: 1.5rem;
+                margin-bottom: 20px;
+            }
+        }
+
+        .goal {
+            position: relative;
+            width: 100%;
+            max-width: 350px;
+            height: 175px;
+            margin: 15px auto;
+            background: linear-gradient(to bottom, #87CEEB 0%, #228B22 30%);
+            border: none;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        @media (min-width: 768px) {
+            .goal {
+                max-width: 600px;
+                height: 300px;
+                margin: 20px auto;
+            }
+        }
+
+        .goalpost {
+            position: absolute;
+            background: #E6E6FA;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .goalpost.left {
+            left: 30px;
+            top: 60px;
+            width: 8px;
+            height: 90px;
+            border-radius: 4px;
+        }
+
+        .goalpost.right {
+            right: 30px;
+            top: 60px;
+            width: 8px;
+            height: 90px;
+            border-radius: 4px;
+        }
+
+        .goalpost.top {
+            top: 60px;
+            left: 30px;
+            width: calc(100% - 60px);
+            height: 8px;
+            border-radius: 4px;
+        }
+
+        .goal-net {
+            position: absolute;
+            top: 68px;
+            left: 38px;
+            width: calc(100% - 76px);
+            height: 82px;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 255, 255, 0.3) 10px,
+                rgba(255, 255, 255, 0.3) 12px
+            ),
+            repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 255, 255, 0.3) 10px,
+                rgba(255, 255, 255, 0.3) 12px
+            );
+            opacity: 0.7;
+        }
+        
+        @media (min-width: 768px) {
+            .goalpost.left {
+                left: 50px;
+                top: 100px;
+                width: 12px;
+                height: 150px;
+                border-radius: 6px;
+            }
+
+            .goalpost.right {
+                right: 50px;
+                top: 100px;
+                width: 12px;
+                height: 150px;
+                border-radius: 6px;
+            }
+
+            .goalpost.top {
+                top: 100px;
+                left: 50px;
+                width: calc(100% - 100px);
+                height: 12px;
+                border-radius: 6px;
+            }
+
+            .goal-net {
+                top: 112px;
+                left: 62px;
+                width: calc(100% - 124px);
+                height: 138px;
+                background: repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 15px,
+                    rgba(255, 255, 255, 0.3) 15px,
+                    rgba(255, 255, 255, 0.3) 17px
+                ),
+                repeating-linear-gradient(
+                    -45deg,
+                    transparent,
+                    transparent 15px,
+                    rgba(255, 255, 255, 0.3) 15px,
+                    rgba(255, 255, 255, 0.3) 17px
+                );
+            }
+        }
+
+        .goalkeeper {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            background-image: url('fried-rice-monster.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            left: 50%;
+            bottom: 15px;
+            transform: translateX(-50%);
+            transition: all 0.5s ease;
+            animation: idle 2s ease-in-out infinite;
+            filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.3));
+        }
+        
+        @media (min-width: 768px) {
+            .goalkeeper {
+                width: 120px;
+                height: 120px;
+                bottom: 30px;
+                filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.3));
+            }
+        }
+
+        @keyframes idle {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.05); }
+        }
+
+        .ball {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background-image: url('soccer-ball.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 50%;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 1s ease;
+            z-index: 10;
+            box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        @media (min-width: 768px) {
+            .ball {
+                width: 35px;
+                height: 35px;
+                bottom: 20px;
+                box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        .direction-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            max-width: 100%;
+            margin: 15px auto;
+            padding: 0 10px;
+        }
+
+        .direction-btn {
+            padding: 12px 15px;
+            font-size: 0.9rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            color: white;
+            flex: 1;
+            max-width: 110px;
+            white-space: nowrap;
+        }
+        
+        @media (min-width: 768px) {
+            .direction-buttons {
+                gap: 15px;
+                max-width: 400px;
+                margin: 20px auto;
+                padding: 0;
+            }
+            
+            .direction-btn {
+                padding: 15px 25px;
+                font-size: 1.2rem;
+                border-radius: 10px;
+                flex: none;
+                max-width: none;
+            }
+        }
+
+        .direction-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-left {
+            background: #ff6b6b;
+        }
+
+        .btn-center {
+            background: #4ecdc4;
+        }
+
+        .btn-right {
+            background: #45b7d1;
+        }
+
+        .result {
+            font-size: 1.1rem;
+            margin: 15px 0;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        @media (min-width: 768px) {
+            .result {
+                font-size: 1.5rem;
+                margin: 20px 0;
+                min-height: 50px;
+            }
+        }
+
+        .goal-text {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .save-text {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .reset-btn {
+            background: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        .reset-btn:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="title">⚽ PKチャレンジ vs チャーハンター ⚽</h1>
+        
+        <div class="score">
+            <span>ゴール: <span id="goals">0</span></span> | 
+            <span>セーブ: <span id="saves">0</span></span> | 
+            <span>試行回数: <span id="attempts">0</span></span>
+        </div>
+
+        <div class="goal">
+            <div class="goal-net"></div>
+            <div class="goalpost left"></div>
+            <div class="goalpost right"></div>
+            <div class="goalpost top"></div>
+            <div class="goalkeeper" id="goalkeeper"></div>
+            <div class="ball" id="ball"></div>
+        </div>
+
+        <div class="direction-buttons">
+            <button class="direction-btn btn-left" onclick="shoot('left')">⬅️ 左</button>
+            <button class="direction-btn btn-center" onclick="shoot('center')">⚽ 中央</button>
+            <button class="direction-btn btn-right" onclick="shoot('right')">➡️ 右</button>
+        </div>
+
+        <div class="result" id="result"></div>
+
+        <button class="reset-btn" onclick="resetGame()">リセット</button>
+    </div>
+
+    <script>
+        let goals = 0;
+        let saves = 0;
+        let attempts = 0;
+        let isPlaying = false;
+
+        function shoot(direction) {
+            if (isPlaying) return;
+            isPlaying = true;
+            attempts++;
+
+            const ball = document.getElementById('ball');
+            const goalkeeper = document.getElementById('goalkeeper');
+            const result = document.getElementById('result');
+
+            // ゴールキーパーの動き（ランダム）
+            const keeperMoves = ['left', 'right', 'center'];
+            const keeperDirection = keeperMoves[Math.floor(Math.random() * keeperMoves.length)];
+
+            // ゴールキーパーのアニメーション
+            moveKeeper(keeperDirection);
+
+            // ボールのアニメーション
+            setTimeout(() => {
+                moveBall(direction);
+            }, 200);
+
+            // 結果判定
+            setTimeout(() => {
+                const isGoal = direction !== keeperDirection;
+                
+                if (isGoal) {
+                    goals++;
+                    result.innerHTML = '<span class="goal-text">🎉 ゴール！！ 🎉</span>';
+                    // ゴール時の効果音を再生
+                    const goalSound = new Audio('Cheer-Crowd02-3(Short).mp3');
+                    goalSound.play().catch(e => console.log('効果音の再生に失敗しました:', e));
+                } else {
+                    saves++;
+                    result.innerHTML = '<span class="save-text">🛡️ セーブされた... 🛡️</span>';
+                    // セーブ時の効果音を再生
+                    const saveSound = new Audio('Explosion07-1(Dry).mp3');
+                    saveSound.play().catch(e => console.log('効果音の再生に失敗しました:', e));
+                }
+
+                updateScore();
+                
+                // リセット
+                setTimeout(() => {
+                    resetPositions();
+                    result.innerHTML = '';
+                    isPlaying = false;
+                }, 2000);
+            }, 1000);
+        }
+
+        function moveKeeper(direction) {
+            const goalkeeper = document.getElementById('goalkeeper');
+            
+            switch (direction) {
+                case 'left':
+                    goalkeeper.style.left = '10%';
+                    goalkeeper.style.transform = 'translateX(0) scaleX(-1)';
+                    break;
+                case 'right':
+                    goalkeeper.style.left = '80%';
+                    goalkeeper.style.transform = 'translateX(0) scaleX(1)';
+                    break;
+                case 'center':
+                    goalkeeper.style.left = '50%';
+                    goalkeeper.style.transform = 'translateX(-50%) scale(1.2)';
+                    break;
+            }
+        }
+
+        function moveBall(direction) {
+            const ball = document.getElementById('ball');
+            
+            switch (direction) {
+                case 'left':
+                    ball.style.left = '15%';
+                    ball.style.bottom = '60px';
+                    break;
+                case 'right':
+                    ball.style.left = '85%';
+                    ball.style.bottom = '60px';
+                    break;
+                case 'center':
+                    ball.style.left = '50%';
+                    ball.style.bottom = '60px';
+                    break;
+            }
+        }
+
+        function resetPositions() {
+            const ball = document.getElementById('ball');
+            const goalkeeper = document.getElementById('goalkeeper');
+
+            ball.style.left = '50%';
+            ball.style.bottom = '20px';
+            ball.style.transform = 'translateX(-50%)';
+
+            goalkeeper.style.left = '50%';
+            goalkeeper.style.bottom = '20px';
+            goalkeeper.style.transform = 'translateX(-50%)';
+        }
+
+        function updateScore() {
+            document.getElementById('goals').textContent = goals;
+            document.getElementById('saves').textContent = saves;
+            document.getElementById('attempts').textContent = attempts;
+        }
+
+        function resetGame() {
+            goals = 0;
+            saves = 0;
+            attempts = 0;
+            updateScore();
+            resetPositions();
+            document.getElementById('result').innerHTML = '';
+            isPlaying = false;
+        }
+    </script>
+</body>
+</html>
